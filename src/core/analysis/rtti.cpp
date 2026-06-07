@@ -14,7 +14,7 @@ namespace hype {
 
 namespace {
 
-const u8* va_to_ptr(PEImage& img, va_t addr, size_t* max_len = nullptr) {
+[[maybe_unused]] const u8* va_to_ptr(PEImage& img, va_t addr, size_t* max_len = nullptr) {
     for (auto& seg : img.segments) {
         if (seg.contains(addr)) {
             size_t off = static_cast<size_t>(addr - seg.va);
@@ -65,6 +65,10 @@ std::string demangle_rtti(const std::string& mangled) {
 
 } // namespace
 
+}
+
+namespace hype {
+
 void RTTIParser::parse(PEImage& img, AnalysisDB& db) {
     if (img.arch != Arch::X64) return;
 
@@ -78,7 +82,7 @@ void RTTIParser::parse(PEImage& img, AnalysisDB& db) {
 }
 
 void RTTIParser::find_type_descriptors(PEImage& img) {
-    constexpr std::string_view kPattern = ".?AV";
+    [[maybe_unused]] constexpr std::string_view kPattern = ".?AV";
 
     for (auto& seg : img.segments) {
         if (seg.executable() || seg.data.empty()) continue;

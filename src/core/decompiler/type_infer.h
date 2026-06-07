@@ -12,34 +12,24 @@ enum class DTypeKind : u8 {
     Int8, Int16, Int32, Int64,
     UInt8, UInt16, UInt32, UInt64,
     Float, Double,
-    Pointer, Array, FuncPtr, SizeT
+    Pointer, Array, FuncPtr, Struct, SizeT
 };
 
 struct DecompType {
     DTypeKind                   kind = DTypeKind::Int64;
     std::shared_ptr<DecompType> inner;
     int                         array_count = 0;
+    std::string                 struct_name;
     bool                        is_const = false;
 
-    static DecompType make_void()    { return {DTypeKind::Void}; }
-    static DecompType make_bool()    { return {DTypeKind::Bool}; }
-    static DecompType make_char()    { return {DTypeKind::Char}; }
-    static DecompType make_int(int bits, bool sign = true) {
-        switch (bits) {
-        case 8:  return {sign ? DTypeKind::Int8  : DTypeKind::UInt8};
-        case 16: return {sign ? DTypeKind::Int16 : DTypeKind::UInt16};
-        case 32: return {sign ? DTypeKind::Int32 : DTypeKind::UInt32};
-        default: return {sign ? DTypeKind::Int64 : DTypeKind::UInt64};
-        }
-    }
-    static DecompType make_sizet()   { return {DTypeKind::SizeT}; }
-    static DecompType make_ptr(DecompType pointee, bool c = false) {
-        DecompType t;
-        t.kind = DTypeKind::Pointer;
-        t.inner = std::make_shared<DecompType>(std::move(pointee));
-        t.is_const = c;
-        return t;
-    }
+    static DecompType make_void();
+    static DecompType make_bool();
+    static DecompType make_char();
+    static DecompType make_int(int bits, bool sign = true);
+    static DecompType make_sizet();
+    static DecompType make_ptr(DecompType pointee, bool c = false);
+    static DecompType make_array(DecompType inner, u32 count);
+    static DecompType make_struct(std::string name);
 
     std::string to_string() const;
     bool is_pointer() const { return kind == DTypeKind::Pointer; }
@@ -80,7 +70,7 @@ private:
     std::unordered_map<int, DecompType>  types_;
     std::unordered_map<int, std::string> names_;
     std::vector<KnownFunc>               known_funcs_;
-    DecompType                           ret_type_{DTypeKind::Int64};
+    DecompType                           ret_type_{DTypeKind::Int64, nullptr, 0, "", false};
 };
 
 }
