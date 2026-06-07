@@ -48,9 +48,14 @@ public:
     App();
     ~App();
     int run();
-
-private:
+    
+    // Headless/MCP API
     void open_file(const char* path);
+    bool is_busy() const { return busy_; }
+    Analyzer* get_analyzer() const { return analyzer_.get(); }
+    PEImage* get_image() const { return img_.get(); }
+    Database& get_database() { return database_; }
+
     void render_menubar();
     void render_dockspace();
     void build_default_layout(ImGuiID dock_id);
@@ -66,6 +71,7 @@ private:
     void show_bookmarks_dlg();
     void show_sigs_dlg();
     void show_apply_type_dlg();
+    void show_mcp_dlg();
     void compare_with();
     void sync_panels(va_t addr);
     va_t find_func_for(va_t addr);
@@ -135,6 +141,7 @@ private:
     bool             show_sigs_ = false;
     bool             show_apply_type_ = false;
     bool             show_plugin_manager_ = false;
+    bool             show_mcp_ = false;
     bool             layout_built_ = false;
     char             goto_buf_[64] = {};
     char             rename_buf_[256] = {};

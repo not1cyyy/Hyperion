@@ -472,6 +472,9 @@ void PELoader::parse_exceptions(PEImage& img) {
     struct RtFunc { u32 begin_rva; u32 end_rva; u32 unwind_rva; };
     u32 count = pdata.size / sizeof(RtFunc);
 
+    constexpr u32 kMaxExceptions = 500'000;
+    if (count > kMaxExceptions) count = kMaxExceptions;
+
     for (u32 i = 0; i < count; ++i) {
         size_t entry_off;
         if (!safe_add(raw_off, static_cast<size_t>(i) * sizeof(RtFunc), entry_off)) break;

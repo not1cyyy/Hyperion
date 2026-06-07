@@ -8,6 +8,7 @@
 #include <imgui_internal.h>
 #include <spdlog/spdlog.h>
 #include <fmt/format.h>
+#include <nlohmann/json.hpp>
 #include <thread>
 #include <fstream>
 #include <cstring>
@@ -222,6 +223,7 @@ int App::run() {
         if (show_bookmarks_) show_bookmarks_dlg();
         if (show_sigs_) show_sigs_dlg();
         if (show_apply_type_) show_apply_type_dlg();
+        if (show_mcp_) show_mcp_dlg();
 
         // status bar
         {
@@ -561,6 +563,18 @@ void App::render_menubar() {
             if (ImGui::MenuItem("Auto-save", nullptr, autosave_enabled_))
                 autosave_enabled_ = !autosave_enabled_;
             ImGui::Separator();
+            if (ImGui::MenuItem("Toggle Hex", "H", false, analyzer_ != nullptr)) dv_.cmd_toggle_hex();
+            if (ImGui::MenuItem("NOP Out", nullptr, false, analyzer_ != nullptr)) dv_.cmd_nop();
+            ImGui::Separator();
+            if (ImGui::MenuItem("Rebase...", nullptr, false, img_ != nullptr)) show_rebase_ = true;
+            if (ImGui::MenuItem("Apply Signatures", nullptr, false, analyzer_ != nullptr)) {
+                analyzer_->apply_signatures();
+                out_.log("Signatures re-applied");
+            }
+            ImGui::Separator();
+            if (ImGui::MenuItem("Auto-save", nullptr, autosave_enabled_))
+                autosave_enabled_ = !autosave_enabled_;
+            ImGui::Separator();
             if (ImGui::MenuItem("Settings", "Ctrl+,"))
                 settings_panel_.show();
             ImGui::EndMenu();
@@ -577,6 +591,8 @@ void App::render_menubar() {
                 sigmaker_.visible() = true;
             if (ImGui::MenuItem("Debugger", nullptr, false, true))
                 dbgp_.visible() = true;
+            if (ImGui::MenuItem("MCP Server", nullptr, false, true))
+                show_mcp_ = true;
             ImGui::Separator();
             if (ImGui::BeginMenu("Theme")) {
                 if (ImGui::MenuItem("Binary Ninja", nullptr, g_theme == Theme::BinaryNinja)) {
@@ -1373,6 +1389,98 @@ void App::show_apply_type_dlg() {
         if (ImGui::Button("Cancel")) { show_apply_type_ = false; ImGui::CloseCurrentPopup(); }
         ImGui::EndPopup();
     }
+}
+
+void App::show_mcp_dlg() {
+    ImGui::SetNextWindowSize(ImVec2(550, 0), ImGuiCond_Once);
+    ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+    
+    if (ImGui::Begin("MCP Server Integration###mcp", &show_mcp_, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::TextWrapped("Model Context Protocol (MCP) allows AI assistants like Cursor and Claude to directly reverse-engineer binaries using Hyperion's headless decompiler pipeline.");
+        ImGui::Spacing();
+        
+        std::filesystem::path exe_path = std::filesystem::current_path() / "build" / "Release" / "Hyperion.exe";
+#if defined(__APPLE__) || defined(__linux__)
+        exe_path = std::filesystem::current_path() / "build" / "Hyperion";
+#endif
+        ImGui::TextDisabled("Executable Path:");
+        ImGui::TextWrapped("%s", exe_path.string().c_str());
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+        
+        if (ImGui::Button("Install to Cursor (.cursor/mcp.json)", ImVec2(-1, 35))) {
+            try {
+                std::filesystem::create_directory(".cursor");
+                nlohmann::json mcp_config = nlohmann::json::object();
+                if (std::filesystem::exists(".cursor/mcp.json")) {
+                    std::ifstream in(".cursor/mcp.json");
+                    try { in >> mcp_config; } catch(...) {}
+                }
+                
+                if (!mcp_config.contains("mcpServers")) mcp_config["mcpServers"] = nlohmann::json::object();
+                
+                mcp_config["mcpServers"]["hyperion"] = {
+                    {"command", exe_path.string()},
+                    {"args", {"--mcp"}}
+                };
+                
+                std::ofstream out(".cursor/mcp.json");
+                out << mcp_config.dump(2);
+                out_.log("Created/Updated .cursor/mcp.json. Restart Cursor or reload its window to connect.");
+            } catch (const std::exception& e) {
+                out_.log(fmt::format("Error configuring Cursor MCP: {}", e.what()));
+            }
+        }
+        
+        ImGui::Spacing();
+        
+        if (ImGui::Button("Install to Claude Desktop", ImVec2(-1, 35))) {
+            std::filesystem::path claude_path;
+#ifdef _WIN32
+            if (const char* appdata = std::getenv("APPDATA")) {
+                claude_path = std::filesystem::path(appdata) / "Claude" / "claude_desktop_config.json";
+            }
+#elif defined(__APPLE__)
+            if (const char* home = std::getenv("HOME")) {
+                claude_path = std::filesystem::path(home) / "Library" / "Application Support" / "Claude" / "claude_desktop_config.json";
+            }
+#endif
+            if (!claude_path.empty()) {
+                try {
+                    std::filesystem::create_directories(claude_path.parent_path());
+                    nlohmann::json claude_config = nlohmann::json::object();
+                    if (std::filesystem::exists(claude_path)) {
+                        std::ifstream in(claude_path);
+                        try { in >> claude_config; } catch(...) {}
+                    }
+                    if (!claude_config.contains("mcpServers")) claude_config["mcpServers"] = nlohmann::json::object();
+                    
+                    claude_config["mcpServers"]["hyperion"] = {
+                        {"command", exe_path.string()},
+                        {"args", {"--mcp"}}
+                    };
+                    
+                    std::ofstream out(claude_path);
+                    out << claude_config.dump(2);
+                    out_.log(fmt::format("Updated {}. Restart Claude Desktop.", claude_path.string()));
+                } catch (const std::exception& e) {
+                    out_.log(fmt::format("Error configuring Claude MCP: {}", e.what()));
+                }
+            } else {
+                out_.log("Claude Desktop config path not found on this OS.");
+            }
+        }
+        
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+        
+        if (ImGui::Button("Close", ImVec2(100, 0))) {
+            show_mcp_ = false;
+        }
+    }
+    ImGui::End();
 }
 
 void App::compare_with() {

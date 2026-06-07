@@ -12,6 +12,7 @@
     "spdlog",
     "fmt",
     "zlib",
-    "lua"
+    "lua",
+    "nlohmann-json"
   ]
 }

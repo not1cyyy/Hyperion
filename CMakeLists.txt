@@ -30,6 +30,7 @@ find_package(spdlog CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(Lua REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
 
 file(GLOB_RECURSE HYPERION_SOURCES
     "src/*.cpp"
@@ -54,6 +55,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     fmt::fmt
     ZLIB::ZLIB
     ${LUA_LIBRARIES}
+    nlohmann_json::nlohmann_json
 )
 
 if(WIN32)
