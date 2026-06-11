@@ -7,10 +7,10 @@
 
 namespace hype {
 
-static constexpr int REG_ARM64_SP = ARM64_REG_SP;
+[[maybe_unused]] static constexpr int REG_ARM64_SP = ARM64_REG_SP;
 static constexpr int REG_ARM64_XZR = ARM64_REG_XZR;
 static constexpr int REG_ARM64_WZR = ARM64_REG_WZR;
-static constexpr int REG_ARM64_NZCV = ARM64_REG_NZCV;
+[[maybe_unused]] static constexpr int REG_ARM64_NZCV = ARM64_REG_NZCV;
 
 Varnode LifterARM64::reg_vn(int reg_id) {
     if (reg_id == ARM64_REG_INVALID) return vn_const(0);

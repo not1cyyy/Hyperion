@@ -110,7 +110,7 @@ bool safe_add(size_t a, size_t b, size_t& result) {
     return result >= a;
 }
 
-bool safe_add32(u32 a, u32 b, u32& result) {
+[[maybe_unused]] bool safe_add32(u32 a, u32 b, u32& result) {
     result = a + b;
     return result >= a;
 }
@@ -471,6 +471,9 @@ void PELoader::parse_exceptions(PEImage& img) {
 
     struct RtFunc { u32 begin_rva; u32 end_rva; u32 unwind_rva; };
     u32 count = pdata.size / sizeof(RtFunc);
+
+    [[maybe_unused]] constexpr u32 kMaxExceptions = 500'000;
+    if (count > kMaxExceptions) count = kMaxExceptions;
 
     for (u32 i = 0; i < count; ++i) {
         size_t entry_off;

@@ -29,7 +29,7 @@ constexpr u16 EM_AARCH64 = 183;
 
 // Segment types
 constexpr u32 PT_LOAD    = 1;
-constexpr u32 PT_DYNAMIC = 2;
+[[maybe_unused]] constexpr u32 PT_DYNAMIC = 2;
 
 // Segment flags
 constexpr u32 PF_X = 1;
@@ -38,8 +38,8 @@ constexpr u32 PF_R = 4;
 
 // Section types
 constexpr u32 SHT_SYMTAB  = 2;
-constexpr u32 SHT_STRTAB  = 3;
-constexpr u32 SHT_DYNAMIC = 6;
+[[maybe_unused]] constexpr u32 SHT_STRTAB  = 3;
+[[maybe_unused]] constexpr u32 SHT_DYNAMIC = 6;
 constexpr u32 SHT_DYNSYM  = 11;
 
 // Symbol binding/type
@@ -48,11 +48,11 @@ constexpr u8 STB_WEAK   = 2;
 constexpr u8 STT_FUNC   = 2;
 
 // Dynamic tags
-constexpr i64 DT_NEEDED  = 1;
-constexpr i64 DT_PLTGOT  = 3;
-constexpr i64 DT_STRTAB  = 5;
-constexpr i64 DT_JMPREL  = 23;
-constexpr i64 DT_PLTRELSZ = 2;
+[[maybe_unused]] constexpr i64 DT_NEEDED  = 1;
+[[maybe_unused]] constexpr i64 DT_PLTGOT  = 3;
+[[maybe_unused]] constexpr i64 DT_STRTAB  = 5;
+[[maybe_unused]] constexpr i64 DT_JMPREL  = 23;
+[[maybe_unused]] constexpr i64 DT_PLTRELSZ = 2;
 
 #pragma pack(push, 1)
 struct Elf32_Ehdr {

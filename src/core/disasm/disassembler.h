@@ -10,10 +10,11 @@ namespace hype {
 enum class InsnType : u8 {
     Unknown, Nop, Mov, Push, Pop,
     Call, Ret, Jmp, Jcc,
-    Cmp, Test,
-    Add, Sub, Mul, Div,
-    And, Or, Xor, Not, Shl, Shr,
-    Lea, Int, Syscall, Other
+    Cmp, Test, Setcc,
+    Add, Sub, Mul, Div, Imul, Idiv,
+    Inc, Dec,
+    And, Or, Xor, Not, Shl, Shr, Sar, Rol, Ror,
+    Lea, Int, Syscall, Movsx, Movzx, Other
 };
 
 enum class OpType : u8 { None, Reg, Imm, Mem };

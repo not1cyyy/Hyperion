@@ -45,8 +45,8 @@ bool DCE::is_dead_stack_op(const PcodeInsn& op, const PcodeFunc&) {
 }
 
 void DCE::run(PcodeFunc& func) {
-    static constexpr int RSP_ID = 4;
-    static constexpr int RBP_ID = 5;
+    [[maybe_unused]] static constexpr int RSP_ID = 4;
+    [[maybe_unused]] static constexpr int RBP_ID = 5;
 
     // Pass 1: eliminate ONLY redundant prologue/epilogue register saves/restores
     // and flag computations not used by branches.

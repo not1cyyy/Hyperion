@@ -985,7 +985,7 @@ void Analyzer::recover_structs() {
                     total_size = static_cast<u32>(off) + sz;
 
             u32 sid = db_.types.add_struct(name, total_size);
-            u32 field_idx = 0;
+            [[maybe_unused]] u32 field_idx = 0;
             for (auto& [off, sz] : fields_set) {
                 std::string fname = fmt::format("field_{:X}", off);
                 u32 type_id = 0;

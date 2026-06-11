@@ -3,6 +3,32 @@
 
 namespace hype {
 
+DecompType DecompType::make_void()    { return {DTypeKind::Void, nullptr, 0, "", false}; }
+DecompType DecompType::make_bool()    { return {DTypeKind::Bool, nullptr, 0, "", false}; }
+DecompType DecompType::make_char()    { return {DTypeKind::Char, nullptr, 0, "", false}; }
+DecompType DecompType::make_int(int bits, bool sign) {
+    switch (bits) {
+        case 8:  return {sign ? DTypeKind::Int8  : DTypeKind::UInt8, nullptr, 0, "", false};
+        case 16: return {sign ? DTypeKind::Int16 : DTypeKind::UInt16, nullptr, 0, "", false};
+        case 32: return {sign ? DTypeKind::Int32 : DTypeKind::UInt32, nullptr, 0, "", false};
+        default: return {sign ? DTypeKind::Int64 : DTypeKind::UInt64, nullptr, 0, "", false};
+    }
+}
+DecompType DecompType::make_sizet()   { return {DTypeKind::SizeT, nullptr, 0, "", false}; }
+DecompType DecompType::make_ptr(DecompType pointee, bool c) {
+    DecompType t{DTypeKind::Pointer, nullptr, 0, "", c};
+    t.inner = std::make_shared<DecompType>(std::move(pointee));
+    return t;
+}
+DecompType DecompType::make_array(DecompType inner, u32 count) {
+    DecompType t{DTypeKind::Array, nullptr, static_cast<int>(count), "", false};
+    t.inner = std::make_shared<DecompType>(std::move(inner));
+    return t;
+}
+DecompType DecompType::make_struct(std::string name) {
+    return {DTypeKind::Struct, nullptr, 0, std::move(name), false};
+}
+
 int DecompType::bit_width() const {
     switch (kind) {
     case DTypeKind::Bool: case DTypeKind::Int8: case DTypeKind::UInt8: case DTypeKind::Char: return 8;
@@ -80,7 +106,7 @@ void TypeInfer::init_known_funcs() {
         {"CreateFileA",     void_ptr, {const_char_ptr, uint32, uint32, void_ptr, uint32, uint32, void_ptr},
                             {"lpFileName", "dwDesiredAccess", "dwShareMode", "lpSecurityAttributes",
                              "dwCreationDisposition", "dwFlagsAndAttributes", "hTemplateFile"}},
-        {"CreateFileW",     void_ptr, {DecompType::make_ptr(DecompType{DTypeKind::WChar}), uint32, uint32, void_ptr, uint32, uint32, void_ptr},
+        {"CreateFileW",     void_ptr, {DecompType::make_ptr(DecompType{DTypeKind::WChar, nullptr, 0, "", false}), uint32, uint32, void_ptr, uint32, uint32, void_ptr},
                             {"lpFileName", "dwDesiredAccess", "dwShareMode", "lpSecurityAttributes",
                              "dwCreationDisposition", "dwFlagsAndAttributes", "hTemplateFile"}},
         {"CloseHandle",     int32, {void_ptr}, {"hObject"}},
@@ -166,7 +192,7 @@ void TypeInfer::infer_from_calls(const PcodeFunc& func) {
 
 void TypeInfer::infer_params(const PcodeFunc& func) {
     for (auto& p : func.params)
-        set_type(p.id, DecompType{DTypeKind::Int64});
+        set_type(p.id, DecompType{DTypeKind::Int64, nullptr, 0, "", false});
 
     for (auto& blk : func.blocks) {
         for (auto& op : blk.ops) {
@@ -219,7 +245,7 @@ const KnownFunc* TypeInfer::find_known(const std::string& name) const {
 DecompType TypeInfer::get_type(int var_id) const {
     auto it = types_.find(var_id);
     if (it != types_.end()) return it->second;
-    return DecompType{DTypeKind::Int64};
+    return DecompType{DTypeKind::Int64, nullptr, 0, "", false};
 }
 
 std::string TypeInfer::get_var_name(int var_id) const {
@@ -231,7 +257,7 @@ std::string TypeInfer::get_var_name(int var_id) const {
 void TypeInfer::run(PcodeFunc& func) {
     types_.clear();
     names_.clear();
-    ret_type_ = DecompType{DTypeKind::Int64};
+    ret_type_ = DecompType{DTypeKind::Int64, nullptr, 0, "", false};
 
     init_known_funcs();
     infer_params(func);

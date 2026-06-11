@@ -78,6 +78,13 @@ Disassembly: Zydis (x86/x64) + Capstone (ARM, ARM64, MIPS, PPC)
 - Script API: get_name, set_name, get_insn, get_bytes, get_functions, get_xrefs_to, set_comment, goto_addr, patch_byte, get_segments, get_arch, create_function
 - See [docs/scripting.md](docs/scripting.md) and [docs/plugins.md](docs/plugins.md)
 
+**MCP Server (Model Context Protocol)**
+- Built-in headless MCP server for AI integration (Cursor, Claude Desktop, etc.)
+- Access disassembly, decompilation, xrefs, and binary structures directly via AI prompts
+- Start the server by passing `--mcp` to the executable:
+  `./build/Release/Hyperion --mcp` (or equivalent on your platform)
+- Supports checking status, finding functions, string references, modifying comments/names, and decompiling over stdio.
+
 **Customization**
 - Settings panel (Ctrl+,): fonts, colors, keybinds, advanced options
 - Editable keybinds (press-to-assign, persisted)
@@ -152,9 +159,9 @@ Dependencies (pulled via vcpkg): imgui (docking), glfw, zydis, capstone, spdlog,
 
 | Platform | Status |
 |----------|--------|
-| Windows x64 | Full support |
-| Linux x64 | Builds, full support |
-| macOS (Intel + Apple Silicon) | Builds, full support |
+| Windows x64 | Full support (UI + MCP) |
+| Linux x64 | Builds, full support (UI + MCP) |
+| macOS (Intel + Apple Silicon) | Builds, full support (UI + MCP) |
 
 ## Status
 
